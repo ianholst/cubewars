@@ -13,19 +13,49 @@ camera.position.set(0,-10,10);
 camera.up = new THREE.Vector3(0,0,1);
 camera.lookAt(new THREE.Vector3(0,0,0));
 
+// Make lights
+renderer.shadowMap.enabled = true;
+renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+renderer.gammaInput = true;
+renderer.gammaOutput = true;
+renderer.gammaFactor = 1.5;
+
+var ambient = new THREE.AmbientLight(0xFFFFFF, 0.3);
+scene.add(ambient);
+
+var light = new THREE.SpotLight(0xFFFFFF, 1);
+light.position.set(-6,-6,10);
+light.target.position.set(0,0,0);
+light.shadow.camera.near = camera.near*10;
+light.shadow.camera.far = camera.far/10;
+light.shadow.camera.fov = camera.fov;
+light.castShadow = true;
+light.shadow.mapSize.width = 2*1024;
+light.shadow.mapSize.height = 2*1024;
+scene.add(light);
+
+// hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.6);
+// hemiLight.color.setHSL(0.6, 1, 0.6);
+// hemiLight.groundColor.setHSL(0.095, 1, 0.75);
+// hemiLight.position.set(0, 500, 0);
+// scene.add(hemiLight);
+
 // Make mouse controls
 var controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.enablePan = false;
 controls.enableKeys = false;
 // controls.enableZoom = false;
 
-// Make game objects
+// PHYSICS
+var world = new CANNON.World();
+world.gravity.set(0,0,-30);
 
+// Make game objects
 class Box {
 	constructor(width,depth,height, x,y,z, color, mass) {
 		// DISPLAY
 		this.geometry = new THREE.BoxGeometry(width,depth,height);
-		this.material = new THREE.MeshBasicMaterial({ color: color });
+		this.material = new THREE.MeshPhongMaterial({ color: color });
 		this.mesh = new THREE.Mesh(this.geometry, this.material);
 		this.mesh.position.set(x,y,z);
 		this.mesh.castShadow = true;
@@ -35,61 +65,63 @@ class Box {
 		this.contactMaterial = new CANNON.Material({ friction: 0 });
 		this.body = new CANNON.Body({ mass: mass, shape: this.shape, material: this.contactMaterial });
 		this.body.position.set(x,y,z);
-
+		// ADD TO SCENE/WORLD
+		scene.add(this.mesh);
+		world.add(this.body);
 	}
 }
 
 class Player extends Box {
 	constructor(size, x,y,z, color) {
 		super(size,size,size, x,y,z, color, 1);
-		this.speed = 3.0;
-		this.angSpeed = 2.0;
+		this.thrust = 15;
+		this.torque = 2;
 		this.movement = 0;
 		this.angMovement = 0;
+		this.body.linearDamping = 0.8;
+		this.body.angularDamping = 0.8;
 	}
-	update() {
+	update(dt) {
 		this.mesh.position.copy(this.body.position);
 		this.mesh.quaternion.copy(this.body.quaternion);
-		if (this.angMovement != 0) {
-			this.move(this.movement);
-		}
+		this.move(this.movement);
+		this.rotate(this.angMovement);
 	}
 	move(dir) {
 		this.movement = dir;
 		var facing = this.body.quaternion.vmult(new CANNON.Vec3(0,1,0));
-		this.body.velocity.copy(facing.scale(this.speed*dir));
+		this.body.force.copy(facing.scale(this.thrust*dir));
+
 	}
 	rotate(dir) {
 		this.angMovement = dir;
-		this.body.angularVelocity.z = this.angSpeed*dir
+		this.body.torque.z = this.torque*dir
 	}
 }
 
-class Platform extends Box {
-	constructor(size, color) {
-		super(size,size,0.01, 0,0,0, color, 0);
+class Platform {
+	constructor(size, N, P, color) {
+		this.platformMeshArray = [];
+		for (var y = 0; y < N; y++) {
+			var row = [];
+			for (var x = 0; x < N; x++) {
+				if (Math.random() > P || x==0 || y==0 || x==N-1 || y==N-1) {
+					var xPos = 0 - size/2 + x*size/N + size/N/2;
+					var yPos = 0 - size/2 + y*size/N + size/N/2;
+					var box = new Box(size/N,size/N,0.1, xPos,yPos,0, color, 0);
+					row.push(box);
+				} else {
+					row.push(0);
+				}
+			}
+			this.platformMeshArray.push(row);
+		}
 	}
 }
 
-var player1 = new Player(1, -3,0,3, 0xFF0000);
+var platform = new Platform(10, 8, 0.1, 0x335599);
+var player1 = new Player(1, -3,0,3, 0xFF2222);
 var player2 = new Player(1, 3,0,3, 0x00FFA0);
-
-var platform = new Platform(10, 0x345687);
-
-// PHYSICS
-var world = new CANNON.World();
-world.gravity.set(0,0,-9.82);
-// world.broadphase = new CANNON.NaiveBroadphase();
-
-// Add items to scene
-function addToScene(objects) {
-	for (var object of objects){
-		scene.add(object.mesh);
-		world.add(object.body);
-	}
-}
-addToScene([player1, player2, platform]);
-
 
 // Keyboard interaction
 function onKeyDown(event) {
@@ -158,29 +190,27 @@ function onKeyUp(event) {
 function onResize(event) {
 	camera.aspect = window.innerWidth / window.innerHeight;
 	camera.updateProjectionMatrix();
-	//controls.handleResize();
 	renderer.setSize(window.innerWidth, window.innerHeight);
 }
 
+// Event listeners
 document.addEventListener("keydown", onKeyDown, false);
 document.addEventListener("keyup", onKeyUp, false);
 window.addEventListener("resize", onResize, false);
 
 
 // EVENT LOOP
-var fixedTimeStep = 1.0 / 60.0; // seconds
-var maxSubSteps = 3;
-var lastTime = Date.now();
+var dt = 1 / 60; // seconds
+var lastTimestamp = 0;
+update(lastTimestamp);
 
-function update(time) {
+function update(timestamp) {
 	requestAnimationFrame(update);
-	var dt = (time - lastTime) / 1000.0;
 	renderer.render(scene, camera);
-	world.step(fixedTimeStep, dt, maxSubSteps);
-	lastTime = time;
+	// var timestep = (timestamp - lastTimestamp)/1000;
+	world.step(dt);
+	// lastTimestamp = timestamp;
 	// update displayed positions
-	player1.update();
-	player2.update();
+	player1.update(dt);
+	player2.update(dt);
 }
-
-update();
