@@ -1,16 +1,37 @@
 <!DOCTYPE html>
 <html>
 
-    <head>
-        <meta charset="utf-8">
-        <title>CUBE WARS: EPISODE I</title>
-    </head>
+<head>
+    <meta charset="utf-8">
+    <title>CUBE WARS: EPISODE I</title>
+    <style>
+        #info {
+            color: #FFFFFF;
+            font-size: 16pt;
+            font-family: Ubuntu, Geneva, sans-serif;
+            opacity: .6;
+            text-align: center;
+            z-index: 1;
+            user-select: none;
+        }
 
-    <body>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r83/three.min.js" charset="utf-8"></script>
-        <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js" charset="utf-8"></script>
-        <script src="js/OrbitControls.js" charset="utf-8"></script>
-        <script src="js/index.js" charset="utf-8"></script>
-    </body>
+        canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1
+        }
+    </style>
+</head>
+
+<body>
+    <div id="info">CUBE WARS: EPISODE I</div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r83/three.min.js" charset="utf-8"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js" charset="utf-8"></script>
+    <script src="js/OrbitControls.js" charset="utf-8"></script>
+    <script src="js/index.js" charset="utf-8"></script>
+</body>
 
 </html>
