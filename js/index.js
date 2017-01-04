@@ -139,10 +139,10 @@ function onKeyDown(event) {
 			player1.rotate(-1);
 			break;
 		case "w":
-			player2.move(1);
+			player2.move(-1);
 			break;
 		case "s":
-			player2.move(-1);
+			player2.move(1);
 			break;
 		case "a":
 			player2.rotate(1);
@@ -151,16 +151,16 @@ function onKeyDown(event) {
 			player2.rotate(-1);
 			break;
         case "W":
-			player2.move(0);
+			player2.move(-1);
 			break;
 		case "S":
-			player2.move(0);
+			player2.move(1);
 			break;
 		case "A":
-			player2.rotate(0);
+			player2.rotate(1);
 			break;
 		case "D":
-			player2.rotate(0);
+			player2.rotate(-1);
 			break;
 		default:
 			return;
