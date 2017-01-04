@@ -89,7 +89,7 @@ class Player extends Box {
 	}
 	move(dir) {
 		this.movement = dir;
-		var facing = this.body.quaternion.vmult(new CANNON.Vec3(0,1,0));
+		var facing = this.body.quaternion.vmult(new CANNON.Vec3(1,0,0));
 		this.body.force.copy(facing.scale(this.thrust*dir));
 
 	}
@@ -150,6 +150,18 @@ function onKeyDown(event) {
 		case "d":
 			player2.rotate(-1);
 			break;
+        case "W":
+			player2.move(0);
+			break;
+		case "S":
+			player2.move(0);
+			break;
+		case "A":
+			player2.rotate(0);
+			break;
+		case "D":
+			player2.rotate(0);
+			break;
 		default:
 			return;
 	}
@@ -179,6 +191,18 @@ function onKeyUp(event) {
 			player2.rotate(0);
 			break;
 		case "d":
+			player2.rotate(0);
+			break;
+        case "W":
+			player2.move(0);
+			break;
+		case "S":
+			player2.move(0);
+			break;
+		case "A":
+			player2.rotate(0);
+			break;
+		case "D":
 			player2.rotate(0);
 			break;
 		default:
