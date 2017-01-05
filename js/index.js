@@ -84,12 +84,14 @@ class Player extends Box {
 	update(dt) {
 		this.mesh.position.copy(this.body.position);
 		this.mesh.quaternion.copy(this.body.quaternion);
-		this.move(this.movement);
-		this.rotate(this.angMovement);
+		if (this.movement || this.angMovement) {
+			this.move(this.movement);
+			this.rotate(this.angMovement);
+		}
 	}
 	move(dir) {
 		this.movement = dir;
-		var facing = this.body.quaternion.vmult(new CANNON.Vec3(1,0,0));
+		var facing = this.body.quaternion.vmult(new CANNON.Vec3(0,1,0));
 		this.body.force.copy(facing.scale(this.thrust*dir));
 
 	}
@@ -120,8 +122,12 @@ class Platform {
 }
 
 var platform = new Platform(10, 8, 0.1, 0x335599);
-var player1 = new Player(1, -3,0,3, 0xFF2222);
-var player2 = new Player(1, 3,0,3, 0x00FFA0);
+var player1 = new Player(1, 3,0,3, 0xFF2222);
+var player2 = new Player(1, -3,0,3, 0x00FFA0);
+
+// Rotate players to face each other?
+player1.body.quaternion.setFromEuler(0,0,Math.PI/2);
+player2.body.quaternion.setFromEuler(0,0,-Math.PI/2);
 
 // Keyboard interaction
 function onKeyDown(event) {
@@ -139,10 +145,10 @@ function onKeyDown(event) {
 			player1.rotate(-1);
 			break;
 		case "w":
-			player2.move(-1);
+			player2.move(1);
 			break;
 		case "s":
-			player2.move(1);
+			player2.move(-1);
 			break;
 		case "a":
 			player2.rotate(1);
@@ -151,10 +157,10 @@ function onKeyDown(event) {
 			player2.rotate(-1);
 			break;
         case "W":
-			player2.move(-1);
+			player2.move(1);
 			break;
 		case "S":
-			player2.move(1);
+			player2.move(-1);
 			break;
 		case "A":
 			player2.rotate(1);
