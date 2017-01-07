@@ -76,6 +76,7 @@ class Player extends Box {
 		this.body.linearDamping = 0.8;
 		this.body.angularDamping = 0.8;
 		this.jumpImpulse = 15;
+		this.jumping = 0;
 		this.playerNum = playerNum;
 		this.lost = false;
 		this.startingPosition = new CANNON.Vec3(x,y,z);
@@ -86,6 +87,9 @@ class Player extends Box {
 		if (this.movement || this.angMovement) {
 			this.move(this.movement);
 			this.rotate(this.angMovement);
+		}
+		if (this.jumping) {
+			this.jump(this.jumping);
 		}
 		if(!this.lost && this.body.position.z < 0){
 			document.getElementById('message').textContent = 'Player ' + this.playerNum + ' lost!';
@@ -102,7 +106,8 @@ class Player extends Box {
 		this.angMovement = dir;
 		this.body.torque.z = this.torque*dir
 	}
-	jump() {
+	jump(jumping) {
+		this.jumping = jumping;
 		if (Math.abs(this.body.velocity.z) < 1 && this.body.position.z < this.size) {
 			this.body.applyImpulse(new CANNON.Vec3(0,0,this.jumpImpulse), this.body.position);
 		}
@@ -110,6 +115,7 @@ class Player extends Box {
 	reset() {
 		this.movement = 0;
 		this.angMovement = 0;
+		this.jumping = 0;
 		this.lost = false;
 		this.body.velocity.set(0,0,0);
 		this.body.angularVelocity.set(0,0,0);
@@ -193,10 +199,10 @@ function onKeyDown(event) {
 			player2.rotate(-1);
 			break;
 		case "q":
-			player2.jump();
+			player2.jump(1);
 			break;
 		case "Shift":
-			player1.jump();
+			player1.jump(1);
 			break;
 		case "Escape":
 			resetGame();
@@ -243,6 +249,12 @@ function onKeyUp(event) {
 			break;
 		case "D":
 			player2.rotate(0);
+			break;
+		case "q":
+			player2.jump(0);
+			break;
+		case "Shift":
+			player1.jump(0);
 			break;
 		default:
 			return;
