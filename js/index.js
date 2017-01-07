@@ -34,12 +34,6 @@ light.shadow.mapSize.width = 2*1024;
 light.shadow.mapSize.height = 2*1024;
 scene.add(light);
 
-// hemiLight = new THREE.HemisphereLight(0xffffff, 0xffffff, 0.6);
-// hemiLight.color.setHSL(0.6, 1, 0.6);
-// hemiLight.groundColor.setHSL(0.095, 1, 0.75);
-// hemiLight.position.set(0, 500, 0);
-// scene.add(hemiLight);
-
 // Make mouse controls
 var controls = new THREE.OrbitControls(camera, renderer.domElement);
 controls.enablePan = false;
@@ -48,7 +42,7 @@ controls.enableKeys = false;
 
 // PHYSICS
 var world = new CANNON.World();
-world.gravity.set(0,0,-30);
+world.gravity.set(0,0,-20);
 
 // Make game objects
 class Box {
@@ -74,14 +68,17 @@ class Box {
 class Player extends Box {
 	constructor(size, x,y,z, color, playerNum) {
 		super(size,size,size, x,y,z, color, 1);
+		this.size = size;
 		this.thrust = 15;
 		this.torque = 2;
 		this.movement = 0;
 		this.angMovement = 0;
 		this.body.linearDamping = 0.8;
 		this.body.angularDamping = 0.8;
+		this.jumpImpulse = 15;
 		this.playerNum = playerNum;
 		this.lost = false;
+		this.startingPosition = new CANNON.Vec3(x,y,z);
 	}
 	update(dt) {
 		this.mesh.position.copy(this.body.position);
@@ -105,9 +102,18 @@ class Player extends Box {
 		this.angMovement = dir;
 		this.body.torque.z = this.torque*dir
 	}
-	jump(){
-		var facing = this.body.quaternion.vmult(new CANNON.Vec3(0,0,20));
-		this.body.force.copy(facing.scale(this.thrust));
+	jump() {
+		if (Math.abs(this.body.velocity.z) < 1 && this.body.position.z < this.size) {
+			this.body.applyImpulse(new CANNON.Vec3(0,0,this.jumpImpulse), this.body.position);
+		}
+	}
+	reset() {
+		this.movement = 0;
+		this.angMovement = 0;
+		this.lost = false;
+		this.body.velocity.set(0,0,0);
+		this.body.angularVelocity.set(0,0,0);
+		this.body.position.copy(this.startingPosition);
 	}
 }
 
@@ -136,20 +142,12 @@ var player1 = new Player(1, 3,0,3, 0xFF2222, 1);
 var player2 = new Player(1, -3,0,3, 0x00FFA0, 2);
 
 // Rotate players to face each other?
-player1.body.quaternion.setFromEuler(0,0,Math.PI/2);
-player2.body.quaternion.setFromEuler(0,0,-Math.PI/2);
+// player1.body.quaternion.setFromEuler(0,0,Math.PI/2);
+// player2.body.quaternion.setFromEuler(0,0,-Math.PI/2);
 
-function resetGame(){
-	for(var player of [player1, player2]){
-		player.body.velocity.set(0,0,0);
-		player.movement = 0;
-		player.angMovement = 0;
-		player.lost = false;
-		player.body.velocity.set(0,0,0);
-		player.body.angularVelocity.set(0,0,0);
-	}
-	player1.body.position.set(3,0,3);
-	player2.body.position.set(-3,0,3);
+function resetGame() {
+	player1.reset();
+	player2.reset();
 	player1.body.quaternion.setFromEuler(0,0,Math.PI/2);
 	player2.body.quaternion.setFromEuler(0,0,-Math.PI/2);
 	document.getElementById('message').textContent = '';
@@ -273,7 +271,7 @@ function update(timestamp) {
 	requestAnimationFrame(update);
 	renderer.render(scene, camera);
 	var timestep = (timestamp - lastTimestamp)/1000;
-	world.step(dt, timestep, 10);
+	world.step(dt, timestep, 1);
 	lastTimestamp = timestamp;
 	// update displayed positions
 	player1.update(dt);
