@@ -126,8 +126,8 @@ var player1 = new Player(1, 3,0,3, 0xFF2222);
 var player2 = new Player(1, -3,0,3, 0x00FFA0);
 
 // Rotate players to face each other?
-player1.body.quaternion.setFromEuler(0,0,Math.PI/2);
-player2.body.quaternion.setFromEuler(0,0,-Math.PI/2);
+// player1.body.quaternion.setFromEuler(0,0,Math.PI/2);
+// player2.body.quaternion.setFromEuler(0,0,-Math.PI/2);
 
 // Keyboard interaction
 function onKeyDown(event) {
@@ -237,9 +237,9 @@ update(lastTimestamp);
 function update(timestamp) {
 	requestAnimationFrame(update);
 	renderer.render(scene, camera);
-	// var timestep = (timestamp - lastTimestamp)/1000;
-	world.step(dt);
-	// lastTimestamp = timestamp;
+	var timestep = (timestamp - lastTimestamp)/1000;
+	world.step(dt, timestep, 1);
+	lastTimestamp = timestamp;
 	// update displayed positions
 	player1.update(dt);
 	player2.update(dt);
