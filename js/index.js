@@ -5,7 +5,7 @@ var scene = new THREE.Scene();
 var renderer = new THREE.WebGLRenderer({ antialias: true });
 // Add renderer to HTML
 renderer.setSize(window.innerWidth, window.innerHeight);
-document.body.appendChild(renderer.domElement );
+document.body.appendChild(renderer.domElement);
 
 // Make a camera
 var camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
@@ -72,7 +72,7 @@ class Box {
 }
 
 class Player extends Box {
-	constructor(size, x,y,z, color) {
+	constructor(size, x,y,z, color, playerNum) {
 		super(size,size,size, x,y,z, color, 1);
 		this.thrust = 15;
 		this.torque = 2;
@@ -80,6 +80,8 @@ class Player extends Box {
 		this.angMovement = 0;
 		this.body.linearDamping = 0.8;
 		this.body.angularDamping = 0.8;
+		this.playerNum = playerNum;
+		this.lost = false;
 	}
 	update(dt) {
 		this.mesh.position.copy(this.body.position);
@@ -87,6 +89,10 @@ class Player extends Box {
 		if (this.movement || this.angMovement) {
 			this.move(this.movement);
 			this.rotate(this.angMovement);
+		}
+		if(!this.lost && this.body.position.z < 0){
+			document.getElementById('message').textContent = 'Player ' + this.playerNum + ' lost!';
+			this.lost = true;
 		}
 	}
 	move(dir) {
@@ -98,6 +104,10 @@ class Player extends Box {
 	rotate(dir) {
 		this.angMovement = dir;
 		this.body.torque.z = this.torque*dir
+	}
+	jump(){
+		var facing = this.body.quaternion.vmult(new CANNON.Vec3(0,0,20));
+		this.body.force.copy(facing.scale(this.thrust));
 	}
 }
 
@@ -122,12 +132,28 @@ class Platform {
 }
 
 var platform = new Platform(10, 8, 0.1, 0x335599);
-var player1 = new Player(1, 3,0,3, 0xFF2222);
-var player2 = new Player(1, -3,0,3, 0x00FFA0);
+var player1 = new Player(1, 3,0,3, 0xFF2222, 1);
+var player2 = new Player(1, -3,0,3, 0x00FFA0, 2);
 
 // Rotate players to face each other?
-// player1.body.quaternion.setFromEuler(0,0,Math.PI/2);
-// player2.body.quaternion.setFromEuler(0,0,-Math.PI/2);
+player1.body.quaternion.setFromEuler(0,0,Math.PI/2);
+player2.body.quaternion.setFromEuler(0,0,-Math.PI/2);
+
+function resetGame(){
+	for(var player of [player1, player2]){
+		player.body.velocity.set(0,0,0);
+		player.movement = 0;
+		player.angMovement = 0;
+		player.lost = false;
+		player.body.velocity.set(0,0,0);
+		player.body.angularVelocity.set(0,0,0);
+	}
+	player1.body.position.set(3,0,3);
+	player2.body.position.set(-3,0,3);
+	player1.body.quaternion.setFromEuler(0,0,Math.PI/2);
+	player2.body.quaternion.setFromEuler(0,0,-Math.PI/2);
+	document.getElementById('message').textContent = '';
+}
 
 // Keyboard interaction
 function onKeyDown(event) {
@@ -167,6 +193,15 @@ function onKeyDown(event) {
 			break;
 		case "D":
 			player2.rotate(-1);
+			break;
+		case "q":
+			player2.jump();
+			break;
+		case "Shift":
+			player1.jump();
+			break;
+		case "Escape":
+			resetGame();
 			break;
 		default:
 			return;
@@ -238,7 +273,7 @@ function update(timestamp) {
 	requestAnimationFrame(update);
 	renderer.render(scene, camera);
 	var timestep = (timestamp - lastTimestamp)/1000;
-	world.step(dt, timestep, 1);
+	world.step(dt, timestep, 10);
 	lastTimestamp = timestamp;
 	// update displayed positions
 	player1.update(dt);

@@ -26,7 +26,16 @@
             user-select: none;
             margin: 0;
         }
-
+        #message {
+          color: #FF0000;
+          font-size: 16pt;
+          font-family: Ubuntu, sans-serif;
+          opacity: .6;
+          text-align: center;
+          z-index: 1;
+          user-select: none;
+          margin-bottom: 2px;
+        }
         canvas {
             position: absolute;
             top: 0;
@@ -41,7 +50,7 @@
 <body>
     <h1 id="info">CUBE WARS: EPISODE I</h1>
     <h2>ATTACK OF THE CUBES</h2>
-    <audio src="./" autoplay loop></audio>
+    <div id="message"></div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r83/three.min.js" charset="utf-8"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cannon.js/0.6.2/cannon.min.js" charset="utf-8"></script>
     <script src="js/OrbitControls.js" charset="utf-8"></script>
