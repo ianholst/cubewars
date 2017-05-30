@@ -120,8 +120,6 @@ class Player extends Box {
 		this.body.velocity.set(0,0,0);
 		this.body.angularVelocity.set(0,0,0);
 		this.body.position.copy(this.startingPosition);
-		player1.body.quaternion.setFromEuler(0,0,0);
-		player2.body.quaternion.setFromEuler(0,0,0);
 	}
 }
 
@@ -156,6 +154,8 @@ var player2 = new Player(1, -3,0,3, 0x00FFA0, 2);
 function resetGame() {
 	player1.reset();
 	player2.reset();
+	player1.body.quaternion.setFromEuler(0,0,Math.PI/2);
+	player2.body.quaternion.setFromEuler(0,0,-Math.PI/2);
 	document.getElementById('message').textContent = '';
 }
 
