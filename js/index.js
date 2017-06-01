@@ -92,7 +92,7 @@ class Player extends Box {
 			this.jump(this.jumping);
 		}
 		if(!this.lost && this.body.position.z < 0){
-			document.getElementById('message').textContent = 'Player ' + this.playerNum + ' lost!';
+			document.getElementById('message').textContent = "PLAYER " + this.playerNum + " LOST";
 			this.lost = true;
 		}
 	}
@@ -120,8 +120,7 @@ class Player extends Box {
 		this.body.velocity.set(0,0,0);
 		this.body.angularVelocity.set(0,0,0);
 		this.body.position.copy(this.startingPosition);
-		player1.body.quaternion.setFromEuler(0,0,0);
-		player2.body.quaternion.setFromEuler(0,0,0);
+		this.body.quaternion.setFromEuler(0,0,0);
 	}
 }
 
