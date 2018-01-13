@@ -46,12 +46,13 @@ world.gravity.set(0,0,-20);
 
 // Make game objects
 class Box {
-	constructor(width,depth,height, x,y,z, color, mass) {
+	constructor(width,depth,height, x,y,z, rx,ry,rz, color, mass) {
 		// DISPLAY
 		this.geometry = new THREE.BoxGeometry(width,depth,height);
 		this.material = new THREE.MeshPhongMaterial({ color: color });
 		this.mesh = new THREE.Mesh(this.geometry, this.material);
 		this.mesh.position.set(x,y,z);
+		this.mesh.quaternion.setFromEuler(rx, ry, rz);
 		this.mesh.castShadow = true;
         this.mesh.receiveShadow = true;
 		// PHYSICS
@@ -59,6 +60,7 @@ class Box {
 		this.contactMaterial = new CANNON.Material({ friction: 0 });
 		this.body = new CANNON.Body({ mass: mass, shape: this.shape, material: this.contactMaterial });
 		this.body.position.set(x,y,z);
+		this.body.quaternion.setFromEuler(rx, ry, rz);
 		// ADD TO SCENE/WORLD
 		scene.add(this.mesh);
 		world.add(this.body);
@@ -66,8 +68,8 @@ class Box {
 }
 
 class Player extends Box {
-	constructor(size, x,y,z, color, playerNum) {
-		super(size,size,size, x,y,z, color, 1);
+	constructor(size, x,y,z, rx,ry,rz, color, playerNum) {
+		super(size,size,size, x,y,z, rx,ry,rz, color, 1);
 		this.size = size;
 		this.thrust = 15;
 		this.torque = 2;
@@ -80,6 +82,8 @@ class Player extends Box {
 		this.playerNum = playerNum;
 		this.lost = false;
 		this.startingPosition = new CANNON.Vec3(x,y,z);
+		this.startingRotation = new CANNON.Quaternion(0,0,0,0);
+		this.startingRotation.setFromEuler(rx, ry, rz);
 	}
 	update(dt) {
 		this.mesh.position.copy(this.body.position);
@@ -120,7 +124,7 @@ class Player extends Box {
 		this.body.velocity.set(0,0,0);
 		this.body.angularVelocity.set(0,0,0);
 		this.body.position.copy(this.startingPosition);
-		this.body.quaternion.setFromEuler(0,0,0);
+		this.body.quaternion.copy(this.startingRotation);
 	}
 }
 
@@ -133,7 +137,7 @@ class Platform {
 				if (Math.random() > P || x==0 || y==0 || x==N-1 || y==N-1) {
 					var xPos = 0 - size/2 + x*size/N + size/N/2;
 					var yPos = 0 - size/2 + y*size/N + size/N/2;
-					var box = new Box(size/N,size/N,0.1, xPos,yPos,0, color, 0);
+					var box = new Box(size/N,size/N,0.1, xPos,yPos,0, 0,0,0, color, 0);
 					row.push(box);
 				} else {
 					row.push(0);
@@ -145,12 +149,8 @@ class Platform {
 }
 
 var platform = new Platform(10, 8, 0.1, 0x335599);
-var player1 = new Player(1, 3,0,3, 0xFF2222, 1);
-var player2 = new Player(1, -3,0,3, 0x00FFA0, 2);
-
-// Rotate players to face each other?
-// player1.body.quaternion.setFromEuler(0,0,Math.PI/2);
-// player2.body.quaternion.setFromEuler(0,0,-Math.PI/2);
+var player1 = new Player(1, 3,0,3, 0,0,Math.PI/2, 0xFF2222, 1);
+var player2 = new Player(1, -3,0,3, 0,0,-Math.PI/2, 0x00FFA0, 2);
 
 function resetGame() {
 	player1.reset();
