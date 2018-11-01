@@ -3,7 +3,12 @@ Cubewars was originally a basic Blender game made to demonstrate the game engine
 
 ## Controls
 Player 1: Arrow keys to move, Shift to jump  
-Player 2: WASD to move, Q to jump
+Player 2: WASD to move, Q to jump  
+ESC resets the game.
+
+## Todo
+ - [ ] Add score tallying
+ - [ ] Fix "fall through start" issue
 
 ## License
 This work is released under the [MIT](http://opensource.org/licenses/MIT) license.
