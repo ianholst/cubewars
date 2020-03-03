@@ -8,4 +8,4 @@ Player 2: WASD to move, Q to jump
 ## License
 This work is released under the [MIT](http://opensource.org/licenses/MIT) license.
 
-## [Play Now!](https://cdn.rawgit.com/ianholst/cubewars/master/index.html)
+## [Play Now!](https://raw.githack.com/ianholst/cubewars/master/index.html)
